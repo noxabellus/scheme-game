@@ -12,7 +12,7 @@
                   scheme-game.linear-algebra.matrix
                   scheme-game.linear-algebra.vector))
              (extension scheme-game.linear-algebra.vector
-               (source "../src/scheme-game-linear-algebra-vector.scm"))
+               (source "../src/linear-algebra/vector.scm"))
              (extension scheme-game.linear-algebra.matrix
                (component-dependencies scheme-game.linear-algebra.vector)
-               (source "../src/scheme-game-linear-algebra-matrix.scm"))))
+               (source "../src/linear-algebra/matrix.scm"))))
