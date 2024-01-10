@@ -5,6 +5,7 @@
         (prefix (shell) shell:))
 
 (define args (cdr (command-line)))
+
 (define (run) (shell:run (cd build && ./scheme-game)))
 (define (build)
     (clean)
@@ -14,8 +15,7 @@
     (display "Usage: ./meta.scm [help | run | build | build-and-run | clean]\n")
     (exit exit-code))
 
-(unless (= 1 (length args))
-    (help 1))
+(unless (= 1 (length args)) (help 1))
     
 (case (string->symbol (car args))
     ((help) (help 0))
