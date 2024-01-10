@@ -4,7 +4,8 @@
         (gl)
         (prefix (epoxy) gl:)
         (prefix (gl-utils) gl-utils:)
-        (scheme-game linear-algebra))
+        (scheme-game linear-algebra vector)
+        (scheme-game linear-algebra matrix))
 
 (sdl2:set-main-ready!)
 (sdl2:init! '(video))
