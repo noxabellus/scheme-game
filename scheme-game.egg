@@ -1,0 +1,16 @@
+((version "0.1.0")
+ (synopsis "A game implemented in Chicken Scheme")
+ (author "The Hive Mind")
+ (maintainer "The Hive Mind")
+ (license "UNLICENSE")
+ (build-dependencies r7rs srfi-133 srfi-160 sdl2 epoxy opengl gl-utils)
+ (dependencies r7rs srfi-133 srfi-160 sdl2 epoxy opengl gl-utils)
+ (component-options (csc-options -X r7rs -R r7rs -static))
+ (components (program scheme-game
+               (component-dependencies linalg combinators)
+               (source "../src/main.scm"))
+             (extension linalg
+               (component-dependencies combinators)
+               (source "../src/linalg.scm"))
+             (extension combinators
+               (source "../src/combinators.scm"))))
