@@ -2,8 +2,7 @@
         (scheme read)
         (srfi 160 f32)
         (chicken memory)
-        (scheme-game linear-algebra vector)
-        (scheme-game linear-algebra matrix)
+        (glls)
         (prefix (sdl2) sdl2:)
         (gl)
         (prefix (epoxy) gl:)
@@ -33,26 +32,16 @@
 (define (cleanup!)
   (sdl2:quit!))
 
-(define vertex-shader-source
-  "
-#version 330 core
-layout (location = 0) in vec3 aPos;
+(define-pipeline program
+  ((#:vertex version: (330 core)
+             input: ((a-pos #:vec3)))
+   (define (main) #:void
+     (set! gl:position (vec4 a-pos.x a-pos.y a-pos.z 1.0))))
 
-void main()
-{
-    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
-}
-")
-(define fragment-shader-source
-  "
-#version 330 core
-out vec4 FragColor;
-
-void main()
-{
-    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
-}
-")
+  ((#:fragment version: (330 core)
+               output: ((frag-color #:vec4)))
+   (define (main) #:void
+     (set! frag-color (vec4 1.0 0.5 0.2 1.0)))))
 
 (define (run-game!)
   (define window (sdl2:create-window! "SDL2 + OpenGL Example"
@@ -64,17 +53,13 @@ void main()
   (sdl2:gl-attribute-set! 'context-minor-version 3)
 
   (define gl-context (sdl2:gl-create-context! window))
-
   (gl-utils:check-error)
 
-  (define vertex-shader (gl-utils:make-shader gl:+vertex-shader+
-                                              vertex-shader-source))
-  (define fragment-shader (gl-utils:make-shader gl:+fragment-shader+
-                                                fragment-shader-source))
-  (define program (gl-utils:make-program (list vertex-shader fragment-shader)))
+  (compile-pipelines)
 
   (define vao (gl-utils:gen-vertex-array))
 
+  ;;;++ Yuck!
   (let ((vbo (gl-utils:gen-buffer))
         (vertices (f32vector -0.5 -0.5 0.0
                               0.5 -0.5 0.0
@@ -87,6 +72,7 @@ void main()
                     (gl-utils:->pointer vertices)
                     gl:+static-draw+)
 
+    (gl:bind-attrib-location (pipeline-program program) 0 "aPos")
     (gl:vertex-attrib-pointer 0
                               3
                               gl:+float+
@@ -94,22 +80,24 @@ void main()
                               (* 3 4)
                               (address->pointer 0))
     (gl:enable-vertex-attrib-array 0)
+
     (gl:bind-vertex-array 0))
 
 
   ;; main loop
   (let loop ()
+    (gl:ClearColor 0.0 0.5 1.0 1.0)
+    (gl:Clear gl:COLOR_BUFFER_BIT)
+
+    (gl:use-program (pipeline-program program))
+    (gl:bind-vertex-array vao)
+    (gl:draw-arrays gl:+triangles+ 0 3)
+
+    (sdl2:gl-swap-window! window)
+    (sdl2:flush-events! 'first 'last)
+    (sdl2:pump-events!)
+
     (unless (sdl2:quit-requested?)
-      (gl:ClearColor 0.0 0.5 1.0 1.0)
-      (gl:Clear gl:COLOR_BUFFER_BIT)
-
-      (gl:use-program program)
-      (gl:bind-vertex-array vao)
-      (gl:draw-arrays gl:+triangles+ 0 3)
-
-      (sdl2:gl-swap-window! window)
-      (sdl2:flush-events! 'first 'last)
-      (sdl2:pump-events!)
       (loop))))
 
 (with-sdl2 initialize! run-game! cleanup!)
